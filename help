@@ -1,0 +1,193 @@
+
+Redis
+	- seats { 1: true/false, 2: , 3:, 4: , 5: }
+
+Server 
+	- running at a port (9000)
+
+Client 
+	- runs at a random port between 7000-8000, can be passed as input
+	- shows the seats
+
+	- if a seat is booked/unbooked
+		- broadcast the new available seats
+
+
+---------------
+
+
+
+Events
+	
+	server
+		- connection
+		- message
+		- disconnect
+
+	client	
+		- connect
+		- message
+
+---------
+
+
+Namespace on server side
+
+var nsp = io.of('/my-namespace');
+
+
+
+io.on('connection', function(socket){
+  socket.join('some room');
+});
+
+
+io.to('some room').emit('some event');
+
+
+--------
+
+
+
+CLIENT
+
+var io = require('socket.io-client');
+
+var socket = io.connect('http://localhost:7000');
+
+console.log('CLIENT socket', socket.id);
+
+socket.on('connect', function () {
+	socket.emit('room', { name: 'ddlj'});
+});
+
+socket.on('message', function (data) {
+	console.log('message on client data:', data);
+});
+
+
+
+
+SERVER
+
+var io = require('socket.io')(7000);
+
+// let count = 1;
+io.on('connection', function (socket) {
+	console.log('connection established SERVER');
+
+	// count = count + 1;
+	// console.log('server socket', socket.id);
+
+	socket.emit('message', { a:1, b:2 });
+
+	socket.on('message', function (data) { 
+		console.log('message on server, data:', data);
+	});
+
+	socket.on('room', function(roomDetails) {
+		socket.join(roomDetails.name);
+		io.in('ddlj').emit('message', 'we are in ddls room');
+	})
+
+	io.in('ddlj').emit('message', 'we are in ddls room');
+
+	socket.on('disconnect', function () { 
+		console.log('socket discconnected on server: ', socket.id);
+	});
+});
+
+
+
+
+------
+
+Client
+	- ddlj, k3g
+
+	- connect
+		- join a room
+
+	- get-seat-layout
+
+	- hover-seats
+
+	- set-seats
+	- unset-seats
+
+	- get-seat-layout
+		- hover
+		- red
+
+
+Server
+	- connection
+		- join a room
+
+	- hover-seats
+		- send seat-layout
+
+	- set-seats
+		- make a redis entry
+		- send the seat layout 
+
+	- unset-seats
+		- make a redis entry
+		- send the seat layout
+
+
+
+-------
+
+	- GET /movies/list
+
+	- Opens a socket in the room, depending on the movie
+
+	- 
+
+------
+HTTP and socket io both working at base level
+
+/** Requires */
+const express = require('express');
+const bodyParser = require('body-parser');
+const router = require('./apis/movies/index.js');
+const socket = require('./apis/socket/index.js');
+// const config = require('./config/config.json')
+const app = express();
+
+// Middlewares
+app.use(express.static('public'));
+app.use(bodyParser.json());
+
+// Router 
+app.use('/movies', router);
+
+// Listens
+const server = require('http').createServer(app);  
+const io = require('socket.io')(server);
+
+console.log(`Listening 7000`);
+server.listen(7000);
+
+// Socket events
+io.on('connection', function(socket) {
+	console.log('SERVER says hello', socket.id);
+});
+
+
+------
+
+Flow
+
+
+	- GET http://localhost:7000/movies/list
+		- gives the list of movies
+			- DDLJ
+			- K3G
+
+	- GET http://localhost:7000/movies/select
+		- with an id DDLJ/K3G
+
+		- this returns html file of the seat layout and opens up a socket 
+
