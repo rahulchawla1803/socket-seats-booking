@@ -1,0 +1,54 @@
+<div class="outer-seat" id="div-inline"><div class="inner-seat"></div></div>
+<div class="outer-seat" id="div-inline"><div class="inner-seat"></div></div>
+<div class="outer-seat" id="div-inline"><div class="inner-seat"></div></div>
+<br class="clearBoth" />
+
+<div class="outer-seat" id="div-inline"><div class="inner-seat"></div></div>
+<div class="outer-seat" id="div-inline"><div class="inner-seat"></div></div>
+<div class="outer-seat" id="div-inline"><div class="inner-seat"></div></div>
+<br class="clearBoth"/>
+
+<div class="outer-seat" id="div-inline"><div class="inner-seat"></div></div>
+<div class="outer-seat" id="div-inline"><div class="inner-seat"></div></div>
+<div class="outer-seat" id="div-inline"><div class="inner-seat"></div></div>
+
+
+.outer-seat{
+  width: 80px;
+  height: 80px;
+  border-radius: 9px;
+  border: 3px solid #D8D8D8 ;
+  background: white;
+  position: relative;
+  margin: 4px;
+}
+.inner-seat{
+  width: 70px;
+  height: 70px;
+  border-radius: 4px;
+  top: 50%;
+  left: 50%;
+  margin: -35px 0px 0px -35px;
+  background: #D8D8D8 ;
+  position: absolute;
+}
+
+#div-inline{float: left; }
+
+.outer-seat:hover{
+   border-color: #3366CC;
+}
+
+#div-inline:hover .inner-seat{
+   background: #3366CC;
+}
+
+.clearBoth { clear:both; }
+
+.selected-innerColor { 
+  background-color: #3366CC; 
+}
+
+.selected-outerColor {
+  border-color: #3366CC;
+}

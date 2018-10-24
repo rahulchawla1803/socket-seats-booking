@@ -1,0 +1,36 @@
+.seat{
+  width: 70px;
+  height: 70px;
+  top: 20%;
+  position: absolute;
+}
+
+.available:hover {
+   background: #3366CC;
+}
+
+.available { 
+  background-color: #D8D8D8; 
+}
+
+.selected { 
+  background-color: #228B22; 
+}
+
+.booked { 
+  background-color: #E81E1E; 
+}
+
+.else-booking { 
+  background-color: #F08080; 
+}
+
+.hover1 {
+   background: #3366CC;
+}
+.color-template{
+  width: 200px;
+  height: 25px;
+  left: 5%;
+  position: absolute;
+}

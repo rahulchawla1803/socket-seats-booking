@@ -9,10 +9,11 @@ router.get('/list', (req, res) => {
 });
 
 router.get('/select', (req, res) => {
-	const { id } = req.query;
+	console.log(req.query);
+	const { id: roomId } = req.query;
 
 	res.status(200);
-	return res.sendFile(process.cwd() + `/public/${id}.html`);
+	res.render('seat-layout', { roomId });
 });
 
 

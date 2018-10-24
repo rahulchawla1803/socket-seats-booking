@@ -1,0 +1,78 @@
+<html>
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" ></script>
+<script src="/socket.io/socket.io.js"></script>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+<link rel="stylesheet" href="/seat-layout.css">
+<script>  
+	// Access variables
+	let roomId = "<%= roomId %>"
+
+	// Socket events
+	let socket = io.connect('http://localhost:7000/');
+	console.log(socket);
+
+	socket.on('connect', function() {
+		console.log('CLIENT connection established');
+		socket.emit('room', { roomId });
+	});
+
+	socket.on('get-seats', function(details) {
+		const { seats } = details;
+		console.log('Seats', seats);
+
+		let domSeats = document.getElementsByClassName("seat");
+		for (const [id, status] of Object.entries(seats)) {
+			if (status === 'B') {
+				domSeats[id-1].classList.add('booked');
+				domSeats[id-1].classList.remove('available');
+			}
+		}
+	});
+
+	// Cinema seat toggle
+	$(".seat.available").on("click", function() {
+	    $(this).addClass('selected').removeClass('available');
+	    console.log($(this));
+	    const seatId = $(this).attr('id');
+
+	    // Update datastore, mark seat status as 'B' -> Booked
+
+	});
+
+	$(".selected").on("click", function() {
+		console.log('triggerd');
+	    $(this).addClass('available').removeClass('selected');
+	    const seatId = $(this).attr('id');
+
+	    // Update datastore, mark seat status as 'B' -> Booked
+
+	});
+
+
+</script>  
+<body>
+
+<div class="mt-5 ml-5 mr-5">
+	<% let upperRoomId = roomId.toUpperCase() %>	
+	<h2> Seat layout for <%= upperRoomId%> </h2>
+</div>
+
+<div class="seat available" style= "left: 5%"  id="1">1</div>
+<div class="seat available" style= "left: 11%" id="2">2</div>
+<div class="seat available" style= "left: 17%" id="3">3</div>
+<div class="seat available" style= "left: 23%" id="4">4</div>
+<div class="seat available" style= "left: 29%" id="5">5</div>
+
+
+<div class="color-template available" style= "top: 40%" >Available</div>
+<div class="color-template booked" style= "top: 50%" >Booked</div>
+<div class="color-template hover1" style= "top: 60%" >Hover</div>
+<div class="color-template selected" style= "top: 70%" >Selected By You</div>
+<div class="color-template else-booking" style= "top: 80%" >Someone Is Booking</div>
+
+</body>
+</html>
+
+

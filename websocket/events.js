@@ -4,21 +4,25 @@ function socketEvents(io) {
 		console.log('SERVER says hello', socket.id);
 
 		socket.on('room', function(details) {
-			const { name } = details;
-			socket.join(name);
+			const { roomId } = details;
+			socket.join(roomId);
 
-			socket.emit('get-seat', seats);
+			// Fetches Seats from redis
+			let seats = { 1: 'A', 2: 'A', 3: 'B', 4: 'A', 5: 'A' };
+
+			socket.emit('get-seats', { seats });
 		})
 		
+		/*		
 		socket.on('select-seat', function(details) {
 			const { selectSeat } = details;
 
 			// Change the hash
 
-			// Identify room name for the socket
+			// Identify room id for the socket
 
 			// Broadcast in the room
-			io.in(name).emit('get-seat', seats);
+			io.in(id).emit('get-seat', seats);
 		})
 
 		socket.on('remove-seat', function(details) {
@@ -26,13 +30,13 @@ function socketEvents(io) {
 
 			// Change the hash
 
-			// Identify room name for the socket
+			// Identify room id for the socket
 
 			// Broadcast in the room
-			io.in(name).emit('get-seat', seats);
+			io.in(id).emit('get-seat', seats);
 
 		})
-
+	*/
 	});
 
 }
