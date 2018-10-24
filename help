@@ -1,4 +1,6 @@
+26,457
 
+------------
 Redis
 	- seats { 1: true/false, 2: , 3:, 4: , 5: }
 
@@ -180,7 +182,6 @@ io.on('connection', function(socket) {
 
 Flow
 
-
 	- GET http://localhost:7000/movies/list
 		- gives the list of movies
 			- DDLJ
@@ -190,4 +191,39 @@ Flow
 		- with an id DDLJ/K3G
 
 		- this returns html file of the seat layout and opens up a socket 
+
+
+
+-----
+3 states are there
+	- A - available
+		- others can book
+
+	- H - hover
+		- others can book
+
+	- B - booked
+		- others can't booked, it's locked
+-----
+
+promisify all socket events
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
