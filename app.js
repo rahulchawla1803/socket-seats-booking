@@ -25,8 +25,5 @@ app.use('/movies', router);
 socketEvents(io);
 
 // Listens
-
 console.log(`Listening 7000`);
 server.listen(7000);
-
-// Socket events

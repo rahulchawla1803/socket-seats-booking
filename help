@@ -1,6 +1,3 @@
-26,457
-
-------------
 Redis
 	- seats { 1: true/false, 2: , 3:, 4: , 5: }
 
@@ -14,24 +11,7 @@ Client
 	- if a seat is booked/unbooked
 		- broadcast the new available seats
 
-
 ---------------
-
-
-
-Events
-	
-	server
-		- connection
-		- message
-		- disconnect
-
-	client	
-		- connect
-		- message
-
----------
-
 
 Namespace on server side
 
@@ -49,8 +29,6 @@ io.to('some room').emit('some event');
 
 --------
 
-
-
 CLIENT
 
 var io = require('socket.io-client');
@@ -66,8 +44,6 @@ socket.on('connect', function () {
 socket.on('message', function (data) {
 	console.log('message on client data:', data);
 });
-
-
 
 
 SERVER
@@ -99,131 +75,87 @@ io.on('connection', function (socket) {
 	});
 });
 
-
-
-
 ------
 
 Client
-	- ddlj, k3g
+	- movies/list
+		- ddlj, k3g
 
-	- connect
-		- join a room
+	- movies/select
+		- ON connect 
+			- EMIT socket.emit('join-room')
 
-	- get-seat-layout
+		- ON get-seat
+			- render A,B
 
-	- hover-seats
+		- ON js.hover
+			- EMIT hover-seat
 
-	- set-seats
-	- unset-seats
+		- ON hover-seat
+			- render H
 
-	- get-seat-layout
-		- hover
-		- red
+		- ON js.set-seat
+			- EMIT set-seat
 
+		- ON set-seat
+			- render B
+
+		- ON js.unset-seat
+			- EMIT unset-seat
+
+		- ON unset-seat
+			- render A
+
+		- ON discconnect
+			- EMIT socket.emit('unjoin-room')
 
 Server
-	- connection
-		- join a room
+	- ON connection
+		- ON join-room
+			- socket.join
 
-	- hover-seats
-		- send seat-layout
+		- EMIT get-seat
 
-	- set-seats
-		- make a redis entry
-		- send the seat layout 
+	- ON hover-seat
+		- IO EMIT hover-seat
 
-	- unset-seats
-		- make a redis entry
-		- send the seat layout
+	- ON set-seat
+		- update DB
+		- IO EMIT set-seat
 
+	- ON unset-seat
+		- update DB
+		- IO EMIT unset-seat
 
+	- ON unjoin-room
+		- update DB
+			- remove seats booked by the socket
 
--------
-
-	- GET /movies/list
-
-	- Opens a socket in the room, depending on the movie
-
-	- 
-
-------
-HTTP and socket io both working at base level
-
-/** Requires */
-const express = require('express');
-const bodyParser = require('body-parser');
-const router = require('./apis/movies/index.js');
-const socket = require('./apis/socket/index.js');
-// const config = require('./config/config.json')
-const app = express();
-
-// Middlewares
-app.use(express.static('public'));
-app.use(bodyParser.json());
-
-// Router 
-app.use('/movies', router);
-
-// Listens
-const server = require('http').createServer(app);  
-const io = require('socket.io')(server);
-
-console.log(`Listening 7000`);
-server.listen(7000);
-
-// Socket events
-io.on('connection', function(socket) {
-	console.log('SERVER says hello', socket.id);
-});
-
+		- IO EMIT unset-seat
 
 ------
 
-Flow
-
-	- GET http://localhost:7000/movies/list
-		- gives the list of movies
-			- DDLJ
-			- K3G
-
-	- GET http://localhost:7000/movies/select
-		- with an id DDLJ/K3G
-
-		- this returns html file of the seat layout and opens up a socket 
-
-
-
------
 3 states are there
 	- A - available
 		- others can book
 
 	- H - hover
 		- others can book
+		- someone else is hovering
 
 	- B - booked
 		- others can't booked, it's locked
+
 -----
 
-promisify all socket events
+to do
+	- instead of 5, have 20 seats
+		- for loop for div
+		- id: 'r1c1' to 'r4c5'
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	- round corners for seats
+	- promisify all socket events
+	- if the socket disconnect
+		- remove all the seats booked by it
 

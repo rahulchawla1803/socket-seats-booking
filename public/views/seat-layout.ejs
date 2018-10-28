@@ -6,51 +6,104 @@
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
 <link rel="stylesheet" href="/seat-layout.css">
 <script>  
-	// Access variables
-	let roomId = "<%= roomId %>"
+	// jquery fire on ready
+	$(document).ready(function() {
+		// Seat toggle
+		$('body').on("click", '.available, .selected', function(){
+		    $(this).toggleClass("selected available");
+	
+		    const setSeat = $(this).attr('id');
+		    const classes = $(this).attr('class').split(' ');
+		    const option = classes.includes('selected') ? 'set' : 'unset';
 
-	// Socket events
-	let socket = io.connect('http://localhost:7000/');
-	console.log(socket);
+		    // Emits
+		    socket.emit('set-unset-seat', { roomId, setSeat, option });
+		});
+		
+		// Access variables
+		let roomId = "<%= roomId %>"
 
-	socket.on('connect', function() {
-		console.log('CLIENT connection established');
-		socket.emit('room', { roomId });
-	});
+		// Socket events
+		let socket = io.connect('http://localhost:7000/');
 
-	socket.on('get-seats', function(details) {
-		const { seats } = details;
-		console.log('Seats', seats);
+		socket.on('connect', function() {
+			socket.emit('join-room', { roomId });
+		});
 
-		let domSeats = document.getElementsByClassName("seat");
-		for (const [id, status] of Object.entries(seats)) {
-			if (status === 'B') {
-				domSeats[id-1].classList.add('booked');
-				domSeats[id-1].classList.remove('available');
+		// ON get-seat
+		socket.on('get-seat', function(details) {
+			const { seats } = details;
+
+			let domSeats = $(".seat");
+			for (const [id, status] of Object.entries(seats)) {
+				if (status === 'B') {
+					$(domSeats[id-1]).addClass('booked').removeClass('available');
+				}
 			}
-		}
+		});
+
+		// Event triggered if seat hovered
+		$('.seat.available').hover(
+			// MouseIn
+			function() {
+		    	const classes = $(this).attr('class').split(' ');
+				if (!classes.includes('available')) return;
+
+				const hoverSeat = $(this).attr('id');
+
+				// EMIT
+				socket.emit('hover-seat', { roomId, hoverSeat, option: 'mouse-in'} );
+			},
+
+			// MouseOut
+			function() {
+				const hoverSeat = $(this).attr('id');
+
+				// EMIT
+				socket.emit('hover-seat', { roomId, hoverSeat, option: 'mouse-out'} );
+			}
+		);
+
+		// ON hover-seat
+		socket.on('hover-seat', function(details) {
+			// Destructs
+			const { initiatorId, hoverSeat, option } = details;
+			
+			// Returns if initiated from same socket
+			if (initiatorId === socket.id) return;
+
+			// Change class to else-booking, available depending on mouse-in or mouse-out operation
+			let domSeats = $(".seat");
+			if (option === 'mouse-in') {
+				$(domSeats[hoverSeat-1]).addClass('else-booking').removeClass('available');
+			} else {
+				const classes = $(domSeats[hoverSeat-1]).attr('class').split(' ');
+				
+				if (!classes.includes('booked')) {
+					$(domSeats[hoverSeat-1]).addClass('available');					
+				}
+				$(domSeats[hoverSeat-1]).removeClass('else-booking');
+			}
+		});
+
+		// ON set-seat
+		socket.on('set-unset-seat', function(details) {
+			// Destructs
+			const { initiatorId, setSeat, option } = details;
+
+			// Returns if initiated from same socket
+			if (initiatorId === socket.id) return;
+
+			// Change class to booked
+			let domSeats = $(".seat");
+			if (option === 'set') {
+				$(domSeats[setSeat-1]).addClass('booked').removeClass('available');
+
+			} else {
+				$(domSeats[setSeat-1]).addClass('available').removeClass('booked');
+			}
+		});
 	});
-
-	// Cinema seat toggle
-	$(".seat.available").on("click", function() {
-	    $(this).addClass('selected').removeClass('available');
-	    console.log($(this));
-	    const seatId = $(this).attr('id');
-
-	    // Update datastore, mark seat status as 'B' -> Booked
-
-	});
-
-	$(".selected").on("click", function() {
-		console.log('triggerd');
-	    $(this).addClass('available').removeClass('selected');
-	    const seatId = $(this).attr('id');
-
-	    // Update datastore, mark seat status as 'B' -> Booked
-
-	});
-
-
 </script>  
 <body>
 
@@ -60,11 +113,10 @@
 </div>
 
 <div class="seat available" style= "left: 5%"  id="1">1</div>
-<div class="seat available" style= "left: 11%" id="2">2</div>
-<div class="seat available" style= "left: 17%" id="3">3</div>
-<div class="seat available" style= "left: 23%" id="4">4</div>
-<div class="seat available" style= "left: 29%" id="5">5</div>
-
+<div class="seat available" style= "left: 9%" id="2">2</div>
+<div class="seat available" style= "left: 13%" id="3">3</div>
+<div class="seat available" style= "left: 17%" id="4">4</div>
+<div class="seat available" style= "left: 21%" id="5">5</div>
 
 <div class="color-template available" style= "top: 40%" >Available</div>
 <div class="color-template booked" style= "top: 50%" >Booked</div>

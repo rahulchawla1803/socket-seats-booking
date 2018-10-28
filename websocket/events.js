@@ -1,42 +1,35 @@
 /** Requires */
 function socketEvents(io) {
     io.on('connection', function(socket) {
-		console.log('SERVER says hello', socket.id);
-
-		socket.on('room', function(details) {
+		// ON join-room
+		socket.on('join-room', function(details) {
 			const { roomId } = details;
 			socket.join(roomId);
 
-			// Fetches Seats from redis
+			// Fetches Seats from DB
 			let seats = { 1: 'A', 2: 'A', 3: 'B', 4: 'A', 5: 'A' };
 
-			socket.emit('get-seats', { seats });
+			socket.emit('get-seat', { seats });
 		})
-		
-		/*		
-		socket.on('select-seat', function(details) {
-			const { selectSeat } = details;
 
-			// Change the hash
+		// ON hover-seat
+		socket.on('hover-seat', function(details) {
+			const { roomId, hoverSeat, option } = details;
 
-			// Identify room id for the socket
+			// Emit hover-seat
+			io.in(roomId).emit('hover-seat', { initiatorId: socket.id, hoverSeat, option });
+		});
+	
+		// ON set-unset-seat		
+		socket.on('set-unset-seat', function(details) {
+			const { roomId, setSeat, option } = details;
+
+			// Update DB
 
 			// Broadcast in the room
-			io.in(id).emit('get-seat', seats);
+			io.in(roomId).emit('set-unset-seat', { initiatorId: socket.id, setSeat, option });
 		})
 
-		socket.on('remove-seat', function(details) {
-			const { removedSeat } = details;
-
-			// Change the hash
-
-			// Identify room id for the socket
-
-			// Broadcast in the room
-			io.in(id).emit('get-seat', seats);
-
-		})
-	*/
 	});
 
 }
