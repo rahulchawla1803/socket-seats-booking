@@ -9,7 +9,7 @@
 	// jquery fire on ready
 	$(document).ready(function() {
 		// Seat toggle
-		$('body').on("click", '.available, .selected', function(){
+		$('body').on("click", '.seat.available, .seat.selected', function(){
 		    $(this).toggleClass("selected available");
 	
 		    const setSeat = $(this).attr('id');
@@ -36,6 +36,10 @@
 
 			let domSeats = $(".seat");
 			for (const [id, status] of Object.entries(seats)) {
+				if (status === 'A') {
+					$(domSeats[id-1]).addClass('available').removeClass('booked');
+				}
+
 				if (status === 'B') {
 					$(domSeats[id-1]).addClass('booked').removeClass('available');
 				}
@@ -52,7 +56,7 @@
 				const hoverSeat = $(this).attr('id');
 
 				// EMIT
-				socket.emit('hover-seat', { roomId, hoverSeat, option: 'mouse-in'} );
+				socket.emit('hover-seat', { hoverSeat, option: 'mouse-in'} );
 			},
 
 			// MouseOut
@@ -60,7 +64,7 @@
 				const hoverSeat = $(this).attr('id');
 
 				// EMIT
-				socket.emit('hover-seat', { roomId, hoverSeat, option: 'mouse-out'} );
+				socket.emit('hover-seat', { hoverSeat, option: 'mouse-out'} );
 			}
 		);
 
@@ -103,6 +107,11 @@
 				$(domSeats[setSeat-1]).addClass('available').removeClass('booked');
 			}
 		});
+
+		socket.on('disconnect', function() {
+			console.log('CLIENT socket disconnect');
+		});
+
 	});
 </script>  
 <body>

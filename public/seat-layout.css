@@ -5,7 +5,7 @@
   position: absolute;
 }
 
-.available:hover {
+.seat.available:hover {
    background: #3366CC;
 }
 

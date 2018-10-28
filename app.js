@@ -4,6 +4,9 @@ const bodyParser = require('body-parser');
 const router = require('./apis/movies/index.js');
 const socketEvents = require('./websocket/events.js');
 
+// Instantiate Redis
+const redisClient = require('redis').createClient();
+
 // const config = require('./config/config.json')
 const path = require('path');
 const app = express();
@@ -22,7 +25,7 @@ const io = require('socket.io')(server);
 
 // Router 
 app.use('/movies', router);
-socketEvents(io);
+socketEvents(io, redisClient);
 
 // Listens
 console.log(`Listening 7000`);
