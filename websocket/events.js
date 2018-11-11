@@ -9,7 +9,6 @@ function socketEvents(io, redisClient) {
 			socket.join(roomId);
 
 			// Fetches Seats from DB
-
 			redisClient.hgetall(`seats.${roomId}`, function(err,res) {
 				const seats = res;
 
@@ -52,7 +51,7 @@ function socketEvents(io, redisClient) {
 						seats.splice(index, 1);
 					}
 				
-					// Set/Unset new seat of the user
+					// Set/Unset new seat of the user 
 					redisClient.hmset(`user.${socket.roomId}`, [socket.id, seats]);
 				})
 
@@ -64,8 +63,6 @@ function socketEvents(io, redisClient) {
 
 		// ON disconnect
 		socket.on('disconnect', function() {
-			console.log('SERVER socket disconnect', socket.roomId);
-
 			// Fetch existing seats of the user
 			redisClient.hmget(`user.${socket.roomId}`, [socket.id], function (err,res) {
 				const seats = res[0] ? res[0].split(',') : [];

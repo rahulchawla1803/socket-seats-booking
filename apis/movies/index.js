@@ -12,7 +12,6 @@ router.get('/list', (req, res) => {
 });
 
 router.get('/select', (req, res) => {
-	console.log(req.query);
 	const { id: roomId } = req.query;
 
 	res.status(200);
@@ -23,20 +22,6 @@ router.get('/init', (req, res) => {
 	redisClient.hmset('seats.ddlj', ['1', 'A', '2', 'A', '3', 'A', '4', 'B', '5', 'A']);
 	redisClient.hmset('seats.k3g', ['1', 'A', '2', 'A', '3', 'A', '4', 'A', '5', 'A']);
 
-	/*
-	redisClient.hmset('user.ddlj', ['xyz', ['1','2']]);
-
-
-	redisClient.hget('seats.ddlj', ['1'], function(err,res) {
-		console.log(res);
-	});
-
-
-	redisClient.hgetall('seats.ddlj', function(err,res) {
-		console.log(res);
-	});
-	*/
-
 	redisClient.hgetall('user.ddlj', function(err,res) {
 		if (!res) return;
 		redisClient.hdel('user.ddlj', Object.keys(res));
@@ -46,7 +31,6 @@ router.get('/init', (req, res) => {
 		if (!res) return;
 		redisClient.hdel('user.k3g', Object.keys(res));
 	})
-
 
 	res.send('Done');
 });

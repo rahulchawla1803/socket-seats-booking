@@ -1,161 +1,126 @@
-Redis
-	- seats { 1: true/false, 2: , 3:, 4: , 5: }
+Product
+	Problem Statement
+		- A seat booking application that communicates seat statuses in realtime with all the active users for that movie/event/session
 
-Server 
-	- running at a port (9000)
+	Status
+		- Available
+		- Booked
+			- selected by other user, thus already booked for this user
+		- Selected
+			- selected by this user
+		- Else-booking
+			- other use is currently booking it
 
-Client 
-	- runs at a random port between 7000-8000, can be passed as input
-	- shows the seats
+	Workflow
+		- User request list of movies on /movies/list using http
+		- User selects a movie
+			- realtime interactions happen among the users on seat status
 
-	- if a seat is booked/unbooked
-		- broadcast the new available seats
-
----------------
-
-Namespace on server side
-
-var nsp = io.of('/my-namespace');
-
-
-
-io.on('connection', function(socket){
-  socket.join('some room');
-});
+Tech
+	Framework - Express.js
+	Datastore - redis
+	Websocket - socket.io npm 
 
 
-io.to('some room').emit('some event');
+	Project Structure
+		- apis/
+			- movies/index.js
+
+		- public/
+			- view/
+				- seat-layout.ejs 
+
+			- index.html
+			- seat-layout.css
+
+		- websocket/
+			- event.js
+
+		- app.js
+		- package.json
+
+	Routes
+		/movies/init
+			- to init seats status with default status
+
+		/movies/list
+			- list movies names
+			- render /public/index.html
+
+		/movies/select
+			- renders seat-layout.ejs with roomId as input
+			- this ejs file { html, css, js files } is returned to the browser
+			- browser executes it
+				- requires socket.io lib and a socket request is instantiated from the client side, socket is established between client and server
+				- websocket protocol is used by socket.io lib
+				- each client establishes a socket connection with the server
+				- client interaction with the application is rendered in realtime to other clients
+
+	Files
+		- /websocket/events.js
+			- stores all server side event triggers
+			- on 'connection'
+				- on 'join-room'
+					- assigns a client to a room on the basis of roomid, further any client activity from this room will be broadcasted to the entire room
+					- gets all the seats and their statuses of that room
+					- emit 'get-seat' to the client with seats their statuses
+
+				- on 'hover-seat'
+					- whenever a client hover over the seat, entire room is broadcasted with that information
+					- room emit 'hover-seat'
+
+				- on 'set-unset-seat'
+					- whenever a client selects a seat, entire room is broadcasted with that information
+					- redis hmset
+						- set
+							- sets status as 'B' for the seat in that room, redis parent key will be 'seats.{{roomId}}', child key is seatNumber
+							- fetch currents clients (client that selected the seat) seats
+							- add the seats to the existing seat list 
+							- redis hmset the user seats, redis parent key is 'user.{{roomId}}', child key is client socket id
+
+						- unset
+							- sets status as 'A' for the seat in that room, redis parent key will be 'seats.{{roomId}}', child key is seatNumber
+							- fetch currents clients (client that selected the seat) seats
+							- remove the seats from the existing seat list
+							- redis hmset the user seats, redis parent key is 'user.{{roomId}}', child key is client socket id
+
+				- on 'disconnect'
+					- whenever the client disconnects the socket abruptly in between
+					- fetch seats booked by the client
+					- set status 'A' for all such seats
+					- delete user key from redis
+					- emit 'get-seat'
+
+		- /public/views/seat-layout.ejs
+			- jquery
+			- css
+				- requires seat-layout.css
+					- seat size specs
+					- color codes for different seat status
+
+			- script
+				- jquery to toggle between classes
+					- available, selected
+
+			- all client side events
+				- on 'get-seat'
+					- updates DOM
+
+				- $('.seat.available').hover()
+					- Events
+						- mouse-in
+						- mouse-out
+
+					- emit 'hover-seat'
+						- emits to all the clients in the same room
+
+				- on 'hover-seat'
+					- updates DOM
 
 
---------
+				- on 'set-unset-seat'
+					- set or unset the seat for user
+						- updates DOM
+					- emit 'set-unset-seat'
 
-CLIENT
-
-var io = require('socket.io-client');
-
-var socket = io.connect('http://localhost:7000');
-
-console.log('CLIENT socket', socket.id);
-
-socket.on('connect', function () {
-	socket.emit('room', { name: 'ddlj'});
-});
-
-socket.on('message', function (data) {
-	console.log('message on client data:', data);
-});
-
-
-SERVER
-
-var io = require('socket.io')(7000);
-
-// let count = 1;
-io.on('connection', function (socket) {
-	console.log('connection established SERVER');
-
-	// count = count + 1;
-	// console.log('server socket', socket.id);
-
-	socket.emit('message', { a:1, b:2 });
-
-	socket.on('message', function (data) { 
-		console.log('message on server, data:', data);
-	});
-
-	socket.on('room', function(roomDetails) {
-		socket.join(roomDetails.name);
-		io.in('ddlj').emit('message', 'we are in ddls room');
-	})
-
-	io.in('ddlj').emit('message', 'we are in ddls room');
-
-	socket.on('disconnect', function () { 
-		console.log('socket discconnected on server: ', socket.id);
-	});
-});
-
-------
-
-Client
-	- movies/list
-		- ddlj, k3g
-
-	- movies/select
-		- ON connect 
-			- EMIT socket.emit('join-room')
-
-		- ON get-seat
-			- render A,B
-
-		- ON js.hover
-			- EMIT hover-seat
-
-		- ON hover-seat
-			- render H
-
-		- ON js.set-seat
-			- EMIT set-seat
-
-		- ON set-seat
-			- render B
-
-		- ON js.unset-seat
-			- EMIT unset-seat
-
-		- ON unset-seat
-			- render A
-
-		- ON discconnect
-			- EMIT socket.emit('unjoin-room')
-
-Server
-	- ON connection
-		- ON join-room
-			- socket.join
-
-		- EMIT get-seat
-
-	- ON hover-seat
-		- IO EMIT hover-seat
-
-	- ON set-seat
-		- update DB
-		- IO EMIT set-seat
-
-	- ON unset-seat
-		- update DB
-		- IO EMIT unset-seat
-
-	- ON unjoin-room
-		- update DB
-			- remove seats booked by the socket
-
-		- IO EMIT unset-seat
-
-------
-
-3 states are there
-	- A - available
-		- others can book
-
-	- H - hover
-		- others can book
-		- someone else is hovering
-
-	- B - booked
-		- others can't booked, it's locked
-
------
-
-to do
-	- instead of 5, have 20 seats
-		- for loop for div
-		- id: 'r1c1' to 'r4c5'
-
-
-	- round corners for seats
-	- promisify all socket events
-	- if the socket disconnect
-		- remove all the seats booked by it
 
